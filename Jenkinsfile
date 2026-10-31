@@ -1,20 +1,44 @@
+
 pipeline {
     agent any
+
     stages {
+
         stage('Checkout') {
             steps {
-                echo 'Fetching source code'
+                checkout scm
+                echo 'Source code checkout completed'
             }
         }
+
         stage('Build') {
             steps {
-                echo 'Building the application'
+                bat 'mvn clean compile'
             }
         }
-stage('Test') {
+
+        stage('Test') {
             steps {
-                echo 'Running tests'
+                bat 'mvn test'
             }
+        }
+
+        stage('Archive Artifacts') {
+            steps {
+                bat 'mvn package -DskipTests'
+                archiveArtifacts artifacts: 'target/*.jar',
+                                 fingerprint: true
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed. Check Console Output.'
         }
     }
 }
